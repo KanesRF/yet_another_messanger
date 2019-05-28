@@ -10,6 +10,13 @@
         <item android:id="@+id/friends"
             android:icon="@drawable/ic_account"
             android:title="Friends" />
+        <item android:id="@+id/upload"
+            android:icon="@drawable/ic_file_upload_black_24dp"
+            android:title="Upload file" />
+        <item android:id="@+id/logout"
+            android:icon="@drawable/ic_remove_circle_outline_black_24dp"
+            android:title="Logout" />
+
     </group>
 
 </menu>

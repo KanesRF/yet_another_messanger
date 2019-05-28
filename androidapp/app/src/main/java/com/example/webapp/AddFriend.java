@@ -16,6 +16,8 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
+//TODO add notificator
+
 public class AddFriend extends Activity {
 
     private String uuid = null, token;

@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutionException;
 
 public class AddChat extends Activity {
 
+    //TODO add notificator
+
     List<String> all_friends = null;
     String tocken, uuid, chat_name;
     @Override
@@ -134,9 +136,9 @@ public class AddChat extends Activity {
                     chat_name = name.getText().toString();
                     if (chat_name.equals(""))
                     {
-                        Intent intent = new Intent();
-                        intent.putExtra("name", "");
-                        setResult(RESULT_OK, intent);
+                       // Intent intent = new Intent();
+                       // intent.putExtra("name", "");
+                       // setResult(RESULT_OK, intent);
                         finish();
                     }
                     try {
@@ -180,12 +182,12 @@ public class AddChat extends Activity {
                 //TODO remove plug, parse answer
                 if (result.length() < 4)
                 {
-                    intent.putExtra("name", "");
-                    setResult(RESULT_OK, intent);
+                   // intent.putExtra("name", "");
+                  //  setResult(RESULT_OK, intent);
                     finish();
                 }
-                intent.putExtra("name", chat_name + "\n" + result);
-                setResult(RESULT_OK, intent);
+             //   intent.putExtra("name", chat_name + "\n" + result);
+              //  setResult(RESULT_OK, intent);
                 finish();
             }
         });
@@ -193,12 +195,13 @@ public class AddChat extends Activity {
         Cancel_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.putExtra("name", "");
-                setResult(RESULT_OK, intent);
-                finish();
+               // Intent intent = new Intent();
+                //intent.putExtra("name", "");
+               // setResult(RESULT_OK, intent);
+               // finish();
                 finish();
             }
         });
     }
+
 }

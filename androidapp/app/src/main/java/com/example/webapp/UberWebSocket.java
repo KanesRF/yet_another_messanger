@@ -15,6 +15,8 @@ import android.util.Log;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,6 +43,11 @@ public class UberWebSocket extends Service{
         intent.putExtra("msg", msg);
         LocalBroadcastManager.getInstance(dristnya).sendBroadcast(intent);
     }
+    private static void sendChatToActivity(String msg, Context dristnya) {
+        Intent intent = new Intent("UBER");
+        intent.putExtra("chat", msg);
+        LocalBroadcastManager.getInstance(dristnya).sendBroadcast(intent);
+    }
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "onStartCommand");
         this.token = intent.getStringExtra("TOKEN");
@@ -63,7 +70,7 @@ public class UberWebSocket extends Service{
     public void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("http://192.168.1.229:9091/");
+            uri = new URI("http://188.243.95.184:9091/");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
@@ -83,7 +90,25 @@ public class UberWebSocket extends Service{
 
             @Override
             public void onMessage(String s) {
-                sendMessageToActivity(s, UberWebSocket.this);
+                //TODO Its UNTER shit, so I need to remove later this kostul
+                JSONObject recievedData;
+                String method = null;
+                try {
+                    recievedData = new JSONObject(s);
+                    method = recievedData.getString("method");
+
+                }catch (JSONException e)
+                {
+                    e.printStackTrace();
+                    return;
+                }
+                if (method.equals("message_broadcast_create") || method.equals("file_broadcast_create")){
+                    sendMessageToActivity(s, UberWebSocket.this);
+                }
+                else
+                {
+                    sendChatToActivity(s, UberWebSocket.this);
+                }
             }
 
             @Override

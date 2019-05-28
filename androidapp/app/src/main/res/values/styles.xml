@@ -10,4 +10,7 @@
     <style name="AppTheme.PopUpTheme">
         <item name="android:windowIsTranslucent">true</item>
     </style>
+    <style name="SupaFiller" parent="@android:style/TextAppearance">
+        <item name = "android:textColor">@color/colorPrimary</item>
+    </style>
 </resources>
