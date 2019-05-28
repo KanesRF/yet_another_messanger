@@ -58,7 +58,7 @@ import static com.example.webapp.MainMenu.ADD_CHAT;
 
 //TODO add notificator
 
-public class Friendlist extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class Friendlist extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawLayout;
     private String nickname, uuid, tocken;
     private ArrayList<String> all_friends;
@@ -76,8 +76,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             // Get extra data included in the Intent
             String message = null;
             message = intent.getStringExtra("msg");
-            if (message == null || message.equals(""))
-            {
+            if (message == null || message.equals("")) {
                 return;
             }
             JSONObject recievedData, params_json;
@@ -92,21 +91,18 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 chat_name = params_json.getString("chatName");
                 //uuid_msg = params_json.getString("uuid");
 
-            }catch (JSONException e)
-            {
+            } catch (JSONException e) {
                 e.printStackTrace();
                 return;
             }
-            for (String s : all_id_notificator_chat)
-            {
-                if (s.equals(chat_name))
-                {
+            for (String s : all_id_notificator_chat) {
+                if (s.equals(chat_name)) {
                     return;
                 }
             }
 
-                all_id_notificator_msg.add(chat_name);
-                sendOnChannel1("New message in " + chat_name, (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE));
+            all_id_notificator_msg.add(chat_name);
+            sendOnChannel1("New message in " + chat_name, (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE));
 
         }
 
@@ -119,8 +115,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             // Get extra data included in the Intent
             String message = null;
             message = intent.getStringExtra("chat");
-            if (message == null || message.equals(""))
-            {
+            if (message == null || message.equals("")) {
                 return;
             }
             JSONObject recievedData, params_json;
@@ -132,15 +127,12 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 text = params_json.getString("name");
                 chat_uuid = params_json.getString("uuid");
 
-            }catch (JSONException e)
-            {
+            } catch (JSONException e) {
                 e.printStackTrace();
                 return;
             }
-            for (String s : all_id_notificator_chat)
-            {
-                if (s.equals(text))
-                {
+            for (String s : all_id_notificator_chat) {
+                if (s.equals(text)) {
                     return;
                 }
             }
@@ -188,8 +180,8 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         tocken = extras.getString("TOKEN");
         ListView friend_list = findViewById(R.id.Chats);
         Point size = new Point();
-        ((WindowManager)this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
-        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int)(size.y*0.70));
+        ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
+        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.70));
         friend_list.setLayoutParams(vi_params);
 
         notificationManager_m = NotificationManagerCompat.from(this);
@@ -241,15 +233,12 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             e.printStackTrace();
             return;
         }
-        try{
+        try {
             String IP = new Kostyl().IP;
             result = sender.execute(IP + "/contacts", null, "GET", null, tocken).get();
-        }catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
             e.printStackTrace();
-        }
-        catch(ExecutionException e)
-        {
+        } catch (ExecutionException e) {
             e.printStackTrace();
         }
         String result2[] = result.split("\n");
@@ -266,25 +255,20 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 array[i] = all_names.get(i) + "\n" + all_uuids.get(i);
             }
 
-        }catch (JSONException e)
-        {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
-        if(array != null) {
+        if (array != null) {
             this.all_friends = new ArrayList<String>(Arrays.asList(array));
-        }
-        else
-        {
+        } else {
             this.all_friends = new ArrayList<String>();
         }
-        if (all_friends != null)
-        {
+        if (all_friends != null) {
             draw_friends();
         }
     }
 
-    private void draw_friends()
-    {
+    private void draw_friends() {
         ListView friend_list = findViewById(R.id.Chats);
 
         for (String s : all_friends) {
@@ -299,7 +283,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
                 //Object clickItemObj = adapterView.getAdapter().getItem(index);
-               // String[] chosen = all_friends[index].split("\n");
+                // String[] chosen = all_friends[index].split("\n");
                 //TODO get friend with uuid, that i get
 
             }
@@ -308,21 +292,18 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         friend_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                String [] separate = all_friends.get(pos).split("\n");
+                String[] separate = all_friends.get(pos).split("\n");
                 all_friends.remove(pos);
                 dataList.remove(pos);
                 arrayAdapter.notifyDataSetChanged();
                 SendJSON sender = new SendJSON(1000000, 100000);
                 String result;
-                try{
+                try {
                     String IP = new Kostyl().IP;
                     result = sender.execute(IP + "/contact", null, "DELETE", separate[1], tocken).get();
-                }catch (InterruptedException e)
-                {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
-                catch(ExecutionException e)
-                {
+                } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
 
@@ -332,10 +313,11 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
     }
 
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data == null) {return;}
+        if (data == null) {
+            return;
+        }
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
@@ -344,11 +326,10 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             Uri uri = null;
             if (data != null) {
                 uri = data.getData();
-                String file = null;
+                String [] file = null;
                 try {
                     file = readTextFromUri(uri);
-                }catch (IOException e)
-                {
+                } catch (IOException e) {
 
                 }
                 //TODO upload file
@@ -357,8 +338,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             }
         }
         String result = data.getStringExtra("name");
-        if (result.equals(""))
-        {
+        if (result.equals("")) {
             return;
         }
         String cur_uuid, cur_name;
@@ -370,8 +350,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             cur_uuid = params_json.getString("uuid");
             cur_name = params_json.getString("name");
 
-        }catch (JSONException e)
-        {
+        } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
@@ -390,8 +369,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             /*TODO /chats */
             case R.id.chats_all:
                 Intent intent = new Intent(this, MainMenu.class);
@@ -413,15 +391,12 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             case R.id.logout:
                 SendJSON sender = new SendJSON(1000000, 100000);
                 String result;
-                try{
+                try {
                     String IP = new Kostyl().IP;
                     result = sender.execute(IP + "/auth", null, "DELETE", null, tocken).get();
-                }catch (InterruptedException e)
-                {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
-                catch(ExecutionException e)
-                {
+                } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
                 Intent intent3 = new Intent(this, MainActivity.class);
@@ -444,12 +419,9 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
 
     @Override
     public void onBackPressed() {
-        if (drawLayout.isDrawerOpen(GravityCompat.START))
-        {
+        if (drawLayout.isDrawerOpen(GravityCompat.START)) {
             drawLayout.closeDrawer(GravityCompat.START);
-        }
-        else
-        {
+        } else {
             super.onBackPressed();
         }
         super.onBackPressed();
@@ -476,7 +448,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
 
     private String[] readTextFromUri(Uri uri) throws IOException {
 
-        byte[] bytes = new byte [10485760], ans;
+        byte[] bytes = new byte[10485760], ans;
         int l = 0;
         try {
             ParcelFileDescriptor parcelFileDescriptor =
@@ -493,8 +465,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        if (l > 10485760)
-        {
+        if (l > 10485760) {
             Context context = getApplicationContext();
             CharSequence text = "Too large file!";
             int duration = Toast.LENGTH_SHORT;
@@ -504,14 +475,13 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             return null;
         }
         ans = new byte[l];
-        for (int i = 0; i < l ; i++)
-        {
+        for (int i = 0; i < l; i++) {
             ans[i] = bytes[i];
         }
         String base64 = Base64.encodeToString(ans, Base64.DEFAULT);
-        String [] paths = uri.toString().split("/");
+        String[] paths = uri.toString().split("/");
 
-        String [] answer = {base64, paths[paths.length - 1]};
+        String[] answer = {base64, paths[paths.length - 1]};
         return answer;
    /* @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -538,4 +508,5 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         super.onActivityResult(requestCode, resultCode, data);
     }*/
 
+    }
 }

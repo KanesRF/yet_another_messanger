@@ -614,7 +614,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             Uri uri = null;
             if (data != null) {
                 uri = data.getData();
-                String file = null;
+                String [] file = null;
                 try {
                     file = readTextFromUri(uri);
                 }catch (IOException e)
