@@ -88,7 +88,7 @@ public class AddFriend extends Activity {
                     setResult(RESULT_OK, intent);
                     finish();
                 }
-                intent.putExtra("name", result + "\n" + result);
+                intent.putExtra("name", result);
                 setResult(RESULT_OK, intent);
                 finish();
             }

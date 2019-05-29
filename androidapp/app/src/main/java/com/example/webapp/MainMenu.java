@@ -19,6 +19,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.storage.StorageManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -29,6 +30,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.view.MenuItem;
@@ -95,14 +97,12 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         Bundle extras = getIntent().getExtras();
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-
-        //notificationManager_c = NotificationManagerCompat.from(this);
         notificationManager_m = NotificationManagerCompat.from(this);
 
         drawLayout = findViewById(R.id.draw_layout);
-        nickname = extras.getString("LOGIN");
-        uuid = extras.getString("UUID");
-        token = extras.getString("TOKEN");
+        this.nickname = extras.getString("LOGIN");
+        this.uuid = extras.getString("UUID");
+        this.token = extras.getString("TOKEN");
 
         setSupportActionBar(toolbar);
         NavigationView navigationView = findViewById(R.id.navigator_view);
@@ -119,8 +119,6 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
 
         SendJSON sender = new SendJSON(100000, 100000);
         String result = null;
-        //TODO remove this plug and parse real JSON
-        //String [] all_chats2 = {"Chat one\nuuid1", "Chat 2\nuuid2"};
         JSONObject postData = new JSONObject();
         JSONObject params = new JSONObject();
         try {
@@ -169,9 +167,6 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         {
             this.all_chats = new ArrayList<String>();
         }
-        //this.all_chats = all_chats2;
-        //Request /chats params:{name: "", uuid: ""}
-      //  String [] chats = geChats();
         if (all_chats != null)
         {
             draw_chats();
@@ -194,12 +189,9 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         notificationManager_m.notify(id, notification);
     }
 
-
-    // THIS IS FOR CHAT NOTIFICATION
     private BroadcastReceiver cMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
             String message = null;
             message = intent.getStringExtra("chat");
             if (message == null || message.equals(""))
@@ -255,11 +247,9 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
 
     };
 
-    // THIS IS FOR MSG NOTIFICATION
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
             String message = null;
             message = intent.getStringExtra("msg");
             if (message == null || message.equals(""))
@@ -273,7 +263,6 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 recievedData = new JSONObject(message);
                 params_json = recievedData.getJSONObject("params");
                 chat_name = params_json.getString("chatName");
-                //uuid_msg = params_json.getString("uuid");
                 chat_uuid = params_json.getString("chatUUID");
 
             }catch (JSONException e)
@@ -281,15 +270,6 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 e.printStackTrace();
                 return;
             }
-            /*for (String s : all_chats)
-            {
-                String [] separated = s.split("\n");
-                if (separated[1].equals(chat_uuid))
-                {
-                    chat_name = separated[0];
-                    break;
-                }
-            }*/
             if(chat_name != null) {
 
                 for (String s : all_id_notificator)
@@ -338,27 +318,37 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
             }
         });
 
-        chats_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                String [] separate = all_chats.get(pos).split("\n");
-                all_chats.remove(pos);
-                dataList.remove(pos);
-                arrayAdapter.notifyDataSetChanged();
-                SendJSON sender = new SendJSON(100000, 1000);
-                String result;
-                try{
-                    String IP = new Kostyl().IP;
-                    result = sender.execute(IP + "/chat", null, "DELETE", separate[1], token).get();
-                }catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
-                catch(ExecutionException e)
-                {
-                    e.printStackTrace();
-                }
 
+        chats_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
+        {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int index, long l)
+            {
+                PopupMenu menu = new PopupMenu(MainMenu.this, view);
+                menu.getMenuInflater().inflate(R.menu.generic_menu, menu.getMenu());
+                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item)
+                    {
+                        switch (item.getItemId())
+                        {
+                            case R.id.delete:
+                                String [] chosen = all_chats.get(index).split("\n");
+                                SupaDeleter del = new SupaDeleter(token);
+                                if(del.delete_by_uuid(chosen[1], "chat/participant"))
+                                {
+                                    all_chats.remove(index);
+                                    dataList.remove(index);
+                                    arrayAdapter.notifyDataSetChanged();
+                                    return true;
+                                }
+
+                            default:
+                                return true;
+                        }
+                    }
+                });
+                menu.show();
                 return true;
             }
         });
@@ -454,18 +444,8 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
 
     public void performFileSearch() {
 
-        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-        // browser.
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-
-        // Filter to only show results that can be "opened", such as a
-        // file (as opposed to a list of contacts or timezones)
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        // Filter to show only images, using the image MIME data type.
-        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-        // To search for all documents available via installed storage providers,
-        // it would be "*/*".
         intent.setType("*/*");
 
         startActivityForResult(intent, READ_REQUEST_CODE);
@@ -507,35 +487,29 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
             ans[i] = bytes[i];
         }
         String base64 = Base64.encodeToString(ans, Base64.DEFAULT);
-        String [] paths = uri.toString().split("/");
 
-        String [] answer = {base64, paths[paths.length - 1]};
+        String name = uri2filename(uri);
+
+        String [] answer = {base64, name};
         return answer;
 
+    }
 
-      /*  //String aaaaaaaaaaa = getRealPathFromURI(uri);
-        //File file = new File(uri.getPath());
-        InputStream inputStream = getContentResolver().openInputStream(uri);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder stringBuilder = new StringBuilder();
-        String currentline;
-        while ((currentline = reader.readLine()) != null) {
-            stringBuilder.append(currentline + "\n");
+    private String uri2filename(Uri uri) {
+
+        String ret = null;
+        String scheme = uri.getScheme();
+
+        if (scheme.equals("file")) {
+            ret = uri.getLastPathSegment();
         }
-
-        final String path = Environment.getExternalStorageDirectory() + "/" + Environment.DIRECTORY_DOWNLOADS + "/";
-        file = new File(path, "haha.jpg");
-        boolean a = file.createNewFile();
-        FileOutputStream fOut = new FileOutputStream(file);
-        OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        myOutWriter.append(stringBuilder.toString());
-
-        myOutWriter.close();
-
-        fOut.flush();
-        fOut.close();*/
-
-
+        else if (scheme.equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                ret = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+            }
+        }
+        return ret;
     }
 
     @Override
@@ -548,6 +522,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
             Uri uri = null;
             if (data != null) {
                 uri = data.getData();
+
                 String [] file = null;
                 try {
                     file = readTextFromUri(uri);

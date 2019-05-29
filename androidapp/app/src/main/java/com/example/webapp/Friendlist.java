@@ -7,9 +7,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -22,6 +24,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.view.Gravity;
@@ -55,8 +58,6 @@ import java.util.concurrent.ExecutionException;
 import static com.example.webapp.App.CHANNEL_1_ID;
 import static com.example.webapp.App.CHANNEL_2_ID;
 import static com.example.webapp.MainMenu.ADD_CHAT;
-
-//TODO add notificator
 
 public class Friendlist extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawLayout;
@@ -202,6 +203,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             }
         });
 
+
         View headerView = navigationView.getHeaderView(0);
         TextView nickname_text = headerView.findViewById(R.id.nickname_in_menu);
         nickname_text.setText(nickname);
@@ -276,42 +278,44 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             dataList.add(cur[0]);
 
         }
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, dataList);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
         friend_list.setAdapter(arrayAdapter);
 
-        friend_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        friend_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
+        {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                //Object clickItemObj = adapterView.getAdapter().getItem(index);
-                // String[] chosen = all_friends[index].split("\n");
-                //TODO get friend with uuid, that i get
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int index, long l)
+            {
+                PopupMenu menu = new PopupMenu(Friendlist.this, view);
+                menu.getMenuInflater().inflate(R.menu.generic_menu, menu.getMenu());
+                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item)
+                    {
+                        switch (item.getItemId())
+                        {
+                            case R.id.delete:
+                                String [] chosen = all_friends.get(index).split("\n");
+                                SupaDeleter del = new SupaDeleter(tocken);
+                                if(del.delete_by_uuid(chosen[1], "contact"))
+                                {
+                                    all_friends.remove(index);
+                                    dataList.remove(index);
+                                    arrayAdapter.notifyDataSetChanged();
+                                    return true;
+                                }
 
-            }
-        });
-
-        friend_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                String[] separate = all_friends.get(pos).split("\n");
-                all_friends.remove(pos);
-                dataList.remove(pos);
-                arrayAdapter.notifyDataSetChanged();
-                SendJSON sender = new SendJSON(1000000, 100000);
-                String result;
-                try {
-                    String IP = new Kostyl().IP;
-                    result = sender.execute(IP + "/contact", null, "DELETE", separate[1], tocken).get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-
+                            default:
+                                return true;
+                        }
+                    }
+                });
+                menu.show();
                 return true;
             }
         });
-    }
 
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -326,11 +330,44 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             Uri uri = null;
             if (data != null) {
                 uri = data.getData();
+
                 String [] file = null;
                 try {
                     file = readTextFromUri(uri);
-                } catch (IOException e) {
+                }catch (IOException e)
+                {
+                    return;
+                }
+                if (file == null)
+                {
+                    return ;
+                }
+                SendJSON sender = new SendJSON(100000, 100000);
+                String result;
+                JSONObject postData = new JSONObject();
+                JSONObject params = new JSONObject();
+                try {
+                    params.put("name", "[" + file[1] + "]");
+                    params.put("body", file[0]);
+                    postData.put("id", "1234");
+                    postData.put("jsonrpc", "2.0");
+                    postData.put("method", "creat_user");
+                    postData.put("params", params);
 
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                try{
+                    String IP = new Kostyl().IP;
+                    result = sender.execute(IP + "/file", postData.toString(), "POST", null, token).get();
+                }catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                catch(ExecutionException e)
+                {
+                    e.printStackTrace();
                 }
                 //TODO upload file
                 //Log.i(TAG, "Uri: " + uri.toString());
@@ -345,7 +382,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         JSONObject recievedData, params_json;
         String result2[] = result.split("\n");
         try {
-            recievedData = new JSONObject(result2[1]);
+            recievedData = new JSONObject(result2[0]);
             params_json = recievedData.getJSONObject("params");
             cur_uuid = params_json.getString("uuid");
             cur_name = params_json.getString("name");
@@ -358,7 +395,6 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         all_friends.add(result);
         dataList.add(cur_name);
         arrayAdapter.notifyDataSetChanged();
-        draw_friends();
     }
 
     @Override
@@ -403,10 +439,6 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 TockenMaster tockenMaster = new TockenMaster();
                 tockenMaster.DeleteThoken();
                 startActivity(intent3);
-               /* LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
-                        mMessageReceiver);
-                LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
-                        cMessageReceiver);*/
                 finish();
                 break;
             case R.id.upload:
@@ -428,19 +460,8 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
     }
 
     public void performFileSearch() {
-
-        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-        // browser.
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-
-        // Filter to only show results that can be "opened", such as a
-        // file (as opposed to a list of contacts or timezones)
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        // Filter to show only images, using the image MIME data type.
-        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-        // To search for all documents available via installed storage providers,
-        // it would be "*/*".
         intent.setType("*/*");
 
         startActivityForResult(intent, READ_REQUEST_CODE);
@@ -448,7 +469,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
 
     private String[] readTextFromUri(Uri uri) throws IOException {
 
-        byte[] bytes = new byte[10485760], ans;
+        byte[] bytes = new byte [10485760], ans;
         int l = 0;
         try {
             ParcelFileDescriptor parcelFileDescriptor =
@@ -465,7 +486,8 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        if (l > 10485760) {
+        if (l > 10485760)
+        {
             Context context = getApplicationContext();
             CharSequence text = "Too large file!";
             int duration = Toast.LENGTH_SHORT;
@@ -475,38 +497,33 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             return null;
         }
         ans = new byte[l];
-        for (int i = 0; i < l; i++) {
+        for (int i = 0; i < l ; i++)
+        {
             ans[i] = bytes[i];
         }
         String base64 = Base64.encodeToString(ans, Base64.DEFAULT);
-        String[] paths = uri.toString().split("/");
 
-        String[] answer = {base64, paths[paths.length - 1]};
+        String name = uri2filename(uri);
+
+        String [] answer = {base64, name};
         return answer;
-   /* @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // The document selected by the user won't be returned in the intent.
-            // Instead, a URI to that document will be contained in the return intent
-            // provided to this method as a parameter.
-            // Pull that URI using resultData.getData().
-            Uri uri = null;
-            if (data != null) {
-                uri = data.getData();
-                String file = null;
-                try {
-                    file = readTextFromUri(uri);
-                }catch (IOException e)
-                {
 
-                }
-                //TODO upload file
-                //Log.i(TAG, "Uri: " + uri.toString());
-                //showImage(uri);
+    }
+
+    private String uri2filename(Uri uri) {
+
+        String ret = null;
+        String scheme = uri.getScheme();
+
+        if (scheme.equals("file")) {
+            ret = uri.getLastPathSegment();
+        }
+        else if (scheme.equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                ret = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
-    }*/
-
+        return ret;
     }
 }

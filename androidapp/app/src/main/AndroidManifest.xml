@@ -33,12 +33,11 @@
         <activity
             android:name=".AddChat"
             android:theme="@style/AppTheme.PopUpTheme" />
-        <activity android:name=".Chat"></activity>
+        <activity android:name=".Chat" />
         <service
             android:name=".UberWebSocket"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
     </application>
 
 </manifest>

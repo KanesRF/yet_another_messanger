@@ -12,6 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:id="@+id/layout"
+        app:layout_constraintVertical_chainStyle="packed"
         >
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -21,17 +23,18 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             android:elevation="4dp"/>
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/all_msg"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/darker_gray"
+            android:layout_height="350dp"
+            android:background="@drawable/background_2"
             android:padding="4dp"
-            android:scrollbars="vertical"/>
-        <AutoCompleteTextView
+            android:scrollbars="vertical" />
+        <MultiAutoCompleteTextView
             android:id="@+id/chat_input"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:textAlignment="center"
             android:layout_gravity="center"
             android:textStyle="italic"
@@ -42,10 +45,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="OK"
+            android:text="Send"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/Cancel_register" />
+            app:layout_constraintStart_toEndOf="@+id/layout" />
     </LinearLayout>
     <android.support.design.widget.NavigationView
         android:id="@+id/navigator_view"

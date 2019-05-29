@@ -13,18 +13,20 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class SupaAdapter extends RecyclerView.Adapter<SupaAdapter.ExampleViewHolder>{
-private ArrayList<SpannableString> mExampleList;
+private ArrayList<Chat.msg> mExampleList;
 
 public static class ExampleViewHolder extends RecyclerView.ViewHolder {
     public TextView mTextView1;
+    public TextView mTextView2;
 
     public ExampleViewHolder(View itemView) {
         super(itemView);
         mTextView1 = itemView.findViewById(R.id.textView);
+        mTextView2 = itemView.findViewById(R.id.textView2);
     }
 }
 
-    public SupaAdapter(ArrayList<SpannableString> exampleList) {
+    public SupaAdapter(ArrayList<Chat.msg> exampleList) {
         mExampleList = exampleList;
     }
 
@@ -37,9 +39,10 @@ public static class ExampleViewHolder extends RecyclerView.ViewHolder {
 
     @Override
     public void onBindViewHolder(ExampleViewHolder holder, int position) {
-        SpannableString currentItem = mExampleList.get(position);
-        holder.mTextView1.setText(currentItem);
+        Chat.msg currentItem = mExampleList.get(position);
+        holder.mTextView1.setText(currentItem.span_text);
         holder.mTextView1.setMovementMethod(LinkMovementMethod.getInstance());
+        holder.mTextView2.setText(currentItem.creatorName + " at " + currentItem.date);
     }
 
     @Override

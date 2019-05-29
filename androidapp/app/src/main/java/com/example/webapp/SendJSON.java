@@ -4,13 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -71,12 +66,13 @@ public class SendJSON extends AsyncTask<String, Void, String> {
             InputStream in = httpURLConnection.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(in);
 
-            int inputStreamData = inputStreamReader.read();
-            while (inputStreamData != -1) {
+            //int inputStreamData = inputStreamReader.read();
+            /*while (inputStreamData != -1) {
                 char current = (char) inputStreamData;
                 inputStreamData = inputStreamReader.read();
                 data += current;
-            }
+            }*/
+            data = IOUtils.toString(inputStreamReader);
             tocken = httpURLConnection.getHeaderField("token");
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,7 +86,7 @@ public class SendJSON extends AsyncTask<String, Void, String> {
             String aaa =  Integer.toString(response_code);
             return aaa;
         }
-        return data + "\n" +tocken;
+        return data + "\n" +tocken + "\n" + response_code;
     }
 
     @Override

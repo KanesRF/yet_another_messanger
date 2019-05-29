@@ -67,13 +67,13 @@ public class UberWebSocket extends Service{
         return null;
     }
 
-    public void connectWebSocket() {
+    public boolean connectWebSocket() {
         URI uri;
         try {
             uri = new URI("http://188.243.95.184:9091/");
         } catch (URISyntaxException e) {
             e.printStackTrace();
-            return;
+            return false;
         }
 
         Map<String,String> httpHeaders = new HashMap<String,String>();
@@ -114,6 +114,18 @@ public class UberWebSocket extends Service{
             @Override
             public void onClose(int i, String s, boolean b) {
                 Log.i("Websocket", "Closed " + s);
+                while (true) {
+                    try {
+                        wait(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    mWebSocketClient.connect();
+                    if (!mWebSocketClient.isClosed())
+                    {
+                        break;
+                    }
+                }
             }
 
             @Override
@@ -124,6 +136,11 @@ public class UberWebSocket extends Service{
 
         };
         mWebSocketClient.connect();
+        if (mWebSocketClient.isClosed())
+        {
+            return false;
+        }
+        return true;
        // sendMessage(token);
     }
 
