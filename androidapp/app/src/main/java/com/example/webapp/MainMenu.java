@@ -564,7 +564,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
                 try {
-                    params.put("name", file[1]);
+                    params.put("name", "[" + file[1] + "]");
                     params.put("body", file[0]);
                     postData.put("id", "1234");
                     postData.put("jsonrpc", "2.0");

@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -20,13 +22,24 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.util.Base64;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -45,6 +58,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,7 +77,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         return INSTANCE;
     }
      */
-    private ArrayAdapter<String> arrayAdapter;
+    private ArrayAdapter<SpannableString> arrayAdapter;
     private String uuid, token, chat_uuid, nickname = "";
     private ArrayList<String> all_msgs;
 
@@ -71,11 +85,16 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
     private ArrayList<String> all_files_uuids;
 
     private DrawerLayout drawLayout;
-    private List<String> dataList = new ArrayList<String>();
+    private ArrayList<SpannableString> dataList = new ArrayList<SpannableString>();
     private NotificationManagerCompat notificationManager_c, notificationManager_m;
     private ArrayList<String> all_id_notificator_msg = new ArrayList<String>();
     private ArrayList<String> all_id_notificator_chat = new ArrayList<String>();
+    private SpannableString ss;
+    private ArrayList<ClickableSpan> clickableSpan = new ArrayList<ClickableSpan>();
     private static final int READ_REQUEST_CODE = 42;
+    private RecyclerView msg_list;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -114,10 +133,13 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 e.printStackTrace();
             }
 
+
+
             if (chat_uuid_get.equals(chat_uuid))
             {
-                dataList.add(text);
+                dataList.add(make_clickable_text(text));
                 all_msgs.add(uuid_msg);
+                //make_clickable_text(text);
                 arrayAdapter.notifyDataSetChanged();
             }
             else
@@ -153,7 +175,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             try {
                 recievedData = new JSONObject(message);
                 params_json = recievedData.getJSONObject("params");
-                text = params_json.getString("name");
+                text = params_json.getString("chatName");
                 chat_uuid = params_json.getString("uuid");
 
             }catch (JSONException e)
@@ -197,20 +219,26 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.2));
         edi.setLayoutParams(vi_params);*/
 
-        ListView msg_list = findViewById(R.id.all_msg);
+        this.msg_list = findViewById(R.id.all_msg);
 
         Point size = new Point();
         size = new Point();
         ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
-        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.65));
-        msg_list.setLayoutParams(vi_params);
+       // LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.65));
+       // this.msg_list.setLayoutParams(vi_params);
 
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, dataList);
-        msg_list.setAdapter(arrayAdapter);
+        mLayoutManager = new LinearLayoutManager(this);
+        mAdapter = new SupaAdapter(dataList);
+
+        this.msg_list.setLayoutManager(mLayoutManager);
+        this.msg_list.setAdapter(mAdapter);
+
+        //arrayAdapter = new ArrayAdapter<SpannableString>(this, android.R.layout.simple_list_item_1, dataList);
+        //this.msg_list.setAdapter(arrayAdapter);
 
 
 
-        String [] filenames;//{"[file 1]", "[garden]", "[meme1]", "[report lab 5]", "[file 33]"};
+       // String [] filenames;//{"[file 1]", "[garden]", "[meme1]", "[report lab 5]", "[file 33]"};
         String kostyl = null;
         //TODO get MY files
         try{
@@ -243,6 +271,11 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         }catch (JSONException e)
         {
+            if (this.all_files_names == null)
+            {
+                this.all_files_names = new ArrayList<String>();
+                this.all_files_uuids = new ArrayList<String>();
+            }
             e.printStackTrace();
         }
 
@@ -346,11 +379,19 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 String text = msg.getText().toString();
                 for (String s : all_files_names)
                 {
-                    
+
+                }
+                String supa_kost = null;
+                try{
+                    supa_kost = new String(msg.getText().toString().getBytes("UTF-8"), "ISO-8859-1");
+                }catch (UnsupportedEncodingException e)
+                {
+                    e.printStackTrace();
                 }
                 try {
                     params.put("chatUUID", chat_uuid);
-                    params.put("text", msg.getText().toString());
+
+                    params.put("text", supa_kost);
                     postData.put("id", "1234");
                     postData.put("jsonrpc", "2.0");
                     postData.put("method", "creat_user");
@@ -401,21 +442,35 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
 
-    private void make_clickable_text()
+    private SpannableString make_clickable_text(String msg)
     {
-        ListView msg_list = findViewById(R.id.all_msg);
-
-        String mydata = "some string with 'the data i want' inside";
-        Pattern pattern = Pattern.compile("/[*/]");
-        Matcher matcher = pattern.matcher(mydata);
-        if (matcher.find())
-        {
-
-        }
+            Pattern pattern = Pattern.compile("\\[.+\\]");
+            Matcher matcher = pattern.matcher(msg);
+            SpannableString ss_ = new SpannableString(msg);
+            while (matcher.find())
+            {
+                int first = matcher.start();
+                int second = matcher.end();
+                //clickableSpan
+                ClickableSpan clickableSpan1 = new ClickableSpan() {
+                    @Override
+                    public void onClick(View widget) {
+                        TextView tv = (TextView) widget;
+                        Spanned s = (Spanned) tv.getText();
+                        int start = s.getSpanStart(this);
+                        int end = s.getSpanEnd(this);
+                        String filename = s.subSequence(start, end).toString();
+                        //Log.d(TAG, "onClick [" + s.subSequence(start, end) + "]");
+                    }
+                };
+                clickableSpan.add(clickableSpan1);
+                ss_.setSpan(clickableSpan1, first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            return ss_;
     }
 
     private void draw_chats() {
-        ListView msg_list = findViewById(R.id.all_msg);
+       // RecyclerView  msg_list = findViewById(R.id.all_msg);
         //TODO for each uuid get text msg
         for(String s : all_msgs)
         {
@@ -460,7 +515,8 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             }
             if (cur_msg!=null)
             {
-                dataList.add(cur_msg);
+                dataList.add(make_clickable_text(cur_msg));
+               // make_clickable_text(cur_msg);
             }
 
         }
