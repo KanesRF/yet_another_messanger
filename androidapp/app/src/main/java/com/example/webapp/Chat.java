@@ -248,12 +248,20 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         notificationManager_c = NotificationManagerCompat.from(this);
 
         this.msg_list = findViewById(R.id.all_msg);
+
         mLayoutManager = new LinearLayoutManager(this);
         this.all_msgs = new ArrayList<msg>();
         mAdapter = new SupaAdapter(all_msgs);
 
         this.msg_list.setLayoutManager(mLayoutManager);
         this.msg_list.setAdapter(mAdapter);
+
+
+        Point size = new Point();
+        ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
+        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.65));
+        msg_list.setLayoutParams(vi_params);
+
 
         String kostyl = null;
         try{

@@ -70,7 +70,8 @@ public class UberWebSocket extends Service{
     public boolean connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("http://188.243.95.184:9091/");
+            String IP_web_socket = new Kostyl().IP_web_socket;
+            uri = new URI(IP_web_socket);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return false;
