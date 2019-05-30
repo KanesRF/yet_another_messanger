@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -33,6 +34,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.format.DateFormat;
 import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
@@ -556,6 +558,8 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 };
                 clickableSpan.add(clickableSpan1);
                 ss_.setSpan(clickableSpan1, first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ss_.setSpan( new ForegroundColorSpan(Color.BLUE), first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
             }
             return ss_;
     }

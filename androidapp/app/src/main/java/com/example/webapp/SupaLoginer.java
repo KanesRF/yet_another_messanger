@@ -89,7 +89,7 @@ public class SupaLoginer
             }
             TockenMaster tockenMaster = new TockenMaster();
             //String prov = tockenMaster.readFromFile(Register.this);
-            tockenMaster.writeToFile(uuid, token);
+            tockenMaster.writeToFile(uuid, token, name);
         }
         return uuid + "\n" + token + "\n" + name;
     }

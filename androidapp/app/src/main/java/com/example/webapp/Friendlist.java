@@ -360,7 +360,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 }
                 try{
                     String IP = new Kostyl().IP;
-                    result = sender.execute(IP + "/file", postData.toString(), "POST", null, token).get();
+                    result = sender.execute(IP + "/file", postData.toString(), "POST", null, tocken).get();
                 }catch (InterruptedException e)
                 {
                     e.printStackTrace();

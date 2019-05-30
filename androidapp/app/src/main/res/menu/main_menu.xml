@@ -4,6 +4,7 @@
     tools:showIn="menu_view">
 
     <group android:checkableBehavior="single">
+
         <item android:id="@+id/chats_all"
             android:icon="@drawable/ic_mail"
             android:title="Chats" />

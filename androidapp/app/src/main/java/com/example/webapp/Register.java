@@ -103,7 +103,7 @@ public class Register extends AppCompatActivity {
                     }
                     String result2[] = result.split("\n");
                     result = result2[0];
-                    if (result.length() > 4)//на случай, если там код, а не тело
+                    if (result.length() > 4)
                     {
                         JSONObject recievedData, params_json;
                         String uuid, token;
@@ -111,14 +111,14 @@ public class Register extends AppCompatActivity {
                             recievedData = new JSONObject(result);
                             params_json = recievedData.getJSONObject("params");
                             uuid = params_json.getString("uuid");
-
+                            name = params_json.getString("name");
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
                             return;
                         }
                         //String prov = tockenMaster.readFromFile(Register.this);
-                        tockenMaster.writeToFile(uuid, result2[1]);
+                        tockenMaster.writeToFile(uuid, result2[1], name);
 
                         finish();
                     }

@@ -299,7 +299,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int)(size.y*0.70));
         chats_list.setLayoutParams(vi_params);
 
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, dataList);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
         chats_list.setAdapter(arrayAdapter);
 
         chats_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -311,6 +311,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 intent.putExtra("UUID", uuid);
                 intent.putExtra("TOKEN", token);
                 intent.putExtra("CHAT", chosen[1]);
+                intent.putExtra("LOGIN", nickname);
                 startActivity(intent);
                 LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(mMessageReceiver);
                 LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(cMessageReceiver);

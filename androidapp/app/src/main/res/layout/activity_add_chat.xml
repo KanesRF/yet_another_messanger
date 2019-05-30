@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".AddChat"
-    android:background="@drawable/add_friend_popup">
+    android:background="@drawable/add_chat_back">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

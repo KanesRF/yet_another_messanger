@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         is_logined = tockenMaster.readFromFile();
         if (is_logined != null) {
             String [] separated = is_logined.split("\n");
-            open_main_menu(separated[0], separated[1], null);
+            open_main_menu(separated[0], separated[1], separated[2]);
             //open_main_menu(separated[0], separated[1], null);
         }
 

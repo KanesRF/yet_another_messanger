@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:id="@+id/name_in_menu"
-        android:text="Your name"
+        android:text="Logined as "
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
