@@ -111,14 +111,14 @@ public class Register extends AppCompatActivity {
                             recievedData = new JSONObject(result);
                             params_json = recievedData.getJSONObject("params");
                             uuid = params_json.getString("uuid");
-                            name = params_json.getString("name");
+                           // name = params_json.getString("name");
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
                             return;
                         }
                         //String prov = tockenMaster.readFromFile(Register.this);
-                        tockenMaster.writeToFile(uuid, result2[1], name);
+                        tockenMaster.writeToFile(uuid, result2[1], Login.getText().toString());
 
                         finish();
                     }

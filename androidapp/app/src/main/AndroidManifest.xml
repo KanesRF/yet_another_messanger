@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ndroid="http://schemas.android.com/apk/res-auto"
     package="com.example.webapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -17,6 +18,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".Chat"
+            android:windowSoftInputMode="adjustPan"
+            >
+        </activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,7 +38,6 @@
         <activity
             android:name=".AddChat"
             android:theme="@style/AppTheme.PopUpTheme" />
-        <activity android:name=".Chat" />
         <service
             android:name=".UberWebSocket"
             android:enabled="true"

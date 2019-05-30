@@ -502,7 +502,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                         int start = s.getSpanStart(this);
                         int end = s.getSpanEnd(this);
                         String filename = s.subSequence(start, end).toString();
-                        int index = 0;
+                        int index = -1;
                         for (String cur: all_files_names)
                         {
                             if (cur.equals(filename))
@@ -511,6 +511,8 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                                 break;
                             }
                         }
+                        if (index == -1)
+                            return;
 
                         SendJSON sender = new SendJSON(1000000, 100000);
                         JSONObject postData = new JSONObject();
