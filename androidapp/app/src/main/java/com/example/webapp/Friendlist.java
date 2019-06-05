@@ -491,6 +491,13 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             case R.id.ava:
                 upload_ava();
                 break;
+            case R.id.all_files:
+                Intent intentf = new Intent(this, Show_all_files.class);
+                intentf.putExtra("LOGIN", nickname);
+                intentf.putExtra("UUID", uuid);
+                intentf.putExtra("TOKEN", tocken);
+                startActivity(intentf);
+                break;
         }
 
         return true;

@@ -96,8 +96,8 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
     private ArrayList<String> all_id_notificator_chat = new ArrayList<String>();
 
     private ArrayList<String> all_uuids_participants = new ArrayList<String>();
-    private ArrayList<String> all_uuids_avatars = new ArrayList<String>();
 
+    private ArrayList<String> all_uuids_avatars = new ArrayList<String>();
 
     private ArrayList<avatar_item> all_avatars = new ArrayList<avatar_item>();
 
@@ -837,6 +837,13 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 break;
             case R.id.ava:
                 upload_ava();
+                break;
+            case R.id.all_files:
+                Intent intentf = new Intent(this, Show_all_files.class);
+                intentf.putExtra("LOGIN", nickname);
+                intentf.putExtra("UUID", uuid);
+                intentf.putExtra("TOKEN", token);
+                startActivity(intentf);
                 break;
         }
 

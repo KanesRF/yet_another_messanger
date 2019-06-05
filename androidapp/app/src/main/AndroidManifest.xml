@@ -18,10 +18,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Chat"
-            android:windowSoftInputMode="adjustPan"
-            >
-        </activity>
+        <activity
+            android:name=".Chat"
+            android:windowSoftInputMode="adjustPan"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -38,12 +37,16 @@
         <activity
             android:name=".AddChat"
             android:theme="@style/AppTheme.PopUpTheme" />
+
         <service
             android:name=".UberWebSocket"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"></service>
 
-        </service>
+        <activity
+            android:name=".Show_all_files"
+            android:theme="@style/AppTheme.PopUpTheme">
+        </activity>
     </application>
 
 </manifest>
