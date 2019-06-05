@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -33,6 +35,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -68,7 +71,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
     private NotificationManagerCompat notificationManager_c, notificationManager_m;
     private ArrayList<String> all_id_notificator_msg = new ArrayList<String>();
     private ArrayList<String> all_id_notificator_chat = new ArrayList<String>();
-    private static final int READ_REQUEST_CODE = 42;
+    private static final int READ_REQUEST_CODE = 42, UPLOAD_AVA = 24;
     private List<String> dataList = new ArrayList<String>();
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -208,6 +211,13 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         TextView nickname_text = headerView.findViewById(R.id.nickname_in_menu);
         nickname_text.setText(nickname);
 
+        FaceGetter fg = new FaceGetter(uuid, tocken);
+        Bitmap ava = fg.get_avu();
+        ImageView avatar = headerView.findViewById(R.id.face);
+        if (ava != null) {
+            avatar.setImageBitmap(ava);
+        }
+
         navigationView.setNavigationItemSelectedListener(this);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawLayout, toolbar,
                 R.string.navigation_open, R.string.navigation_close);
@@ -322,7 +332,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         if (data == null) {
             return;
         }
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if ((requestCode == READ_REQUEST_CODE || requestCode == UPLOAD_AVA) && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
@@ -343,7 +353,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                     return ;
                 }
                 SendJSON sender = new SendJSON(100000, 100000);
-                String result;
+                String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
                 try {
@@ -361,6 +371,40 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 try{
                     String IP = new Kostyl().IP;
                     result = sender.execute(IP + "/file", postData.toString(), "POST", null, tocken).get();
+
+                    if ( requestCode == UPLOAD_AVA)
+                    {
+                        String [] kostyl = result.split("\n");
+                        JSONObject recievedData, params_json;
+                        String  ava_uuid = null;
+                        String[] array = null;
+                        try {
+                            recievedData = new JSONObject(kostyl[0]);
+                            params_json = recievedData.getJSONObject("params");
+                            ava_uuid = params_json.getString("uuid");
+
+                        }catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                            return;
+                        }
+
+                        postData = new JSONObject();
+                        params = new JSONObject();
+                        try {
+                            params.put("avatarUUID", ava_uuid);
+                            postData.put("id", "1234");
+                            postData.put("jsonrpc", "2.0");
+                            postData.put("method", "creat_user");
+                            postData.put("params", params);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        sender = new SendJSON(100000, 100000);
+                        result = sender.execute(IP + "/user", postData.toString(), "PUT", null, tocken).get();
+                    }
                 }catch (InterruptedException e)
                 {
                     e.printStackTrace();
@@ -369,32 +413,32 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 {
                     e.printStackTrace();
                 }
+                if (result.length() < 6)
+                {
+                    return;
+                }
+                if (requestCode == UPLOAD_AVA)
+                {
+                    byte[] bytes = Base64.decode(file[0], Base64.DEFAULT);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    setSupportActionBar(toolbar);
+                    NavigationView navigationView = findViewById(R.id.navigator_view);
+
+                    View headerView = navigationView.getHeaderView(0);
+                    navigationView.setNavigationItemSelectedListener(this);
+                    ImageView avatar = headerView.findViewById(R.id.face);
+
+                    avatar.setImageBitmap(bmp);
+
+                }
                 //TODO upload file
                 //Log.i(TAG, "Uri: " + uri.toString());
                 //showImage(uri);
             }
         }
-        String result = data.getStringExtra("name");
-        if (result.equals("")) {
-            return;
-        }
-        String cur_uuid, cur_name;
-        JSONObject recievedData, params_json;
-        String result2[] = result.split("\n");
-        try {
-            recievedData = new JSONObject(result2[0]);
-            params_json = recievedData.getJSONObject("params");
-            cur_uuid = params_json.getString("uuid");
-            cur_name = params_json.getString("name");
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-        result = cur_name + "\n" + cur_uuid;
-        all_friends.add(result);
-        dataList.add(cur_name);
-        arrayAdapter.notifyDataSetChanged();
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -444,9 +488,20 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
             case R.id.upload:
                 performFileSearch();
                 break;
-
+            case R.id.ava:
+                upload_ava();
+                break;
         }
+
         return true;
+    }
+
+    private void upload_ava()
+    {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, UPLOAD_AVA);
     }
 
     @Override

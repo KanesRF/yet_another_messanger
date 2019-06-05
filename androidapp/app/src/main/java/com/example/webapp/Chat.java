@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -37,9 +39,6 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.Base64;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +48,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
@@ -94,12 +94,29 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
     private NotificationManagerCompat notificationManager_c, notificationManager_m;
     private ArrayList<String> all_id_notificator_msg = new ArrayList<String>();
     private ArrayList<String> all_id_notificator_chat = new ArrayList<String>();
+
+    private ArrayList<String> all_uuids_participants = new ArrayList<String>();
+    private ArrayList<String> all_uuids_avatars = new ArrayList<String>();
+
+
+    private ArrayList<avatar_item> all_avatars = new ArrayList<avatar_item>();
+
     private SpannableString ss;
     private ArrayList<ClickableSpan> clickableSpan = new ArrayList<ClickableSpan>();
-    private static final int READ_REQUEST_CODE = 42;
+    private static final int READ_REQUEST_CODE = 42, UPLOAD_AVA = 24;
     private RecyclerView msg_list;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
+
+
+
+    public class avatar_item
+    {
+        public Bitmap avatar;
+        public String participant_uuid;
+        public String avatar_uuid;
+    }
 
     public class msg
     {
@@ -110,7 +127,96 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         public String creatorName;
         public String date;
         public SpannableString span_text;
+        public ArrayList<Bitmap> img;
     }
+
+    private String get_uuid_by_name(String name)
+    {
+        int index = -1;
+        for (String cur: all_files_names)
+        {
+            if (cur.equals(name))
+            {
+                index = all_files_names.indexOf(name);
+                break;
+            }
+        }
+        if (index == -1)
+            return null;
+        return all_files_uuids.get(index);
+    }
+
+    private String get_file(String name)
+    {
+        String uuid = get_uuid_by_name(name);
+        if (uuid == null)
+        {
+            return null;
+        }
+        SendJSON sender = new SendJSON(1000000, 100000);
+        String result = null;
+        try{
+            String IP = new Kostyl().IP;
+            result = sender.execute(IP + "/file", null, "GET", uuid, token).get();
+        }catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }catch(ExecutionException e)
+        {
+            e.printStackTrace();
+        }
+        if (result == null)
+        {
+            return null;
+        }
+        String result2[] = result.split("\n");
+        JSONObject recievedData, params_json;
+        String cur_msg = null;
+        try {
+            recievedData = new JSONObject(result2[0]);
+            params_json = recievedData.getJSONObject("params");
+            cur_msg = params_json.getString("body");
+
+        }catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+        if (cur_msg == null)
+        {
+            return null;
+        }
+        return cur_msg;
+    }
+
+    private ArrayList<Bitmap> get_all_bitmaps(String msg) {
+        ArrayList<Bitmap> result = null;
+        ArrayList<String> names = new ArrayList<String>();
+        Pattern pattern = Pattern.compile("\\[.+?\\.jpg\\]");
+        Matcher matcher = pattern.matcher(msg);
+        SpannableString ss_ = new SpannableString(msg);
+        while (matcher.find()) {
+            int first = matcher.start();
+            int second = matcher.end();
+            names.add(msg.subSequence(first, second).toString());
+        }
+        for(String name:names)
+        {
+            String body = get_file(name);
+            if (body == null)
+            {
+                continue;
+            }
+            if (result == null)
+            {
+                result = new ArrayList<Bitmap>();
+            }
+            byte[] bytes = Base64.decode(body, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            result.add(bmp);
+        }
+        return result;
+    }
+
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -124,6 +230,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             }
             JSONObject recievedData, params_json;
             String uuid_msg = null, text = null, chat_uuid_get = "", chat_name = null, method, body, name, timestamp = "", creator_uuid = "", creator_name = "";
+            String [] image_names = null;
             String[] array = null;
             try {
                 recievedData = new JSONObject(message);
@@ -156,7 +263,9 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             if (chat_uuid_get.equals(chat_uuid))
             {
                 //dataList.add(make_clickable_text(text));
+
                 msg cur_msg = new msg();
+                cur_msg.img = get_all_bitmaps(text);
                 cur_msg.uuid = uuid_msg;
                 cur_msg.time = Long.parseLong(timestamp);
                 cur_msg.text = text;
@@ -243,6 +352,12 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         TextView nickname_text = headerView.findViewById(R.id.nickname_in_menu);
         nickname_text.setText(nickname);
 
+        FaceGetter fg = new FaceGetter(uuid, token);
+        Bitmap ava = fg.get_avu();
+        ImageView avatar = headerView.findViewById(R.id.face);
+        if (ava != null) {
+            avatar.setImageBitmap(ava);
+        }
 
         notificationManager_m = NotificationManagerCompat.from(this);
         notificationManager_c = NotificationManagerCompat.from(this);
@@ -251,7 +366,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         mLayoutManager = new LinearLayoutManager(this);
         this.all_msgs = new ArrayList<msg>();
-        mAdapter = new SupaAdapter(all_msgs);
+        mAdapter = new SupaAdapter(all_msgs, this, all_avatars);
 
         this.msg_list.setLayoutManager(mLayoutManager);
         this.msg_list.setAdapter(mAdapter);
@@ -259,7 +374,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         Point size = new Point();
         ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
-        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.65));
+        LinearLayout.LayoutParams vi_params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (size.y * 0.62));
         msg_list.setLayoutParams(vi_params);
 
 
@@ -309,7 +424,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         }
 
         MultiAutoCompleteTextView SupaFiller  = findViewById(R.id.chat_input);
-        ArrayAdapter<String> Filler_adapter = new  ArrayAdapter<String>(this, android.R.layout.simple_expandable_list_item_1, kostul);
+        ArrayAdapter<String> Filler_adapter = new  ArrayAdapter<String>(this, android.R.layout.simple_expandable_list_item_1, all_files_names);
         SupaFiller.setAdapter(Filler_adapter);
         SupaFiller.setTokenizer(new SupaTokenizer());
 
@@ -346,11 +461,13 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         String result2[] = result.split("\n"), name;
         JSONObject recievedData, params_json;
-        JSONArray all_uuids;
+        JSONArray all_uuids, paeticipantsuuids, avatarsuuids;
         try {
             recievedData = new JSONObject(result2[0]);
             params_json = recievedData.getJSONObject("params");
             all_uuids = params_json.getJSONArray("messagesUUIDs");
+            paeticipantsuuids = params_json.getJSONArray("participantsUUIDs");
+            avatarsuuids = params_json.getJSONArray("avatarsUUIDs");
             name = params_json.getString("name");
 
             for (int i = 0; i < all_uuids.length(); i++) {
@@ -358,6 +475,27 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 cur.uuid = all_uuids.get(i).toString();
                 all_msgs.add(cur);
                 //all_msgs.add(all_uuids.get(i).toString());
+            }
+            for (int i = 0; i < paeticipantsuuids.length(); i++) {
+                all_uuids_participants.add(paeticipantsuuids.get(i).toString());
+                all_uuids_avatars.add(avatarsuuids.get(i).toString());
+                //all_msgs.add(all_uuids.get(i).toString());
+            }
+            String avatar_uuid = "";
+            for(int i = 0; i < all_uuids_avatars.size();i++)
+            {
+                avatar_item cur = new avatar_item();
+                cur.avatar_uuid = all_uuids_avatars.get(i);
+                cur.participant_uuid = all_uuids_participants.get(i);
+                if(cur.avatar_uuid.equals(""))
+                {
+                    cur.avatar = null;
+                    all_avatars.add(cur);
+                    continue;
+                }
+                FaceGetter fg2 = new FaceGetter(uuid,token);
+                cur.avatar = fg2.get_avu();
+                all_avatars.add(cur);
             }
         }catch (JSONException e)
         {
@@ -367,6 +505,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         if(result.length() > 4)
         {
+
             draw_chats();
         }
         else
@@ -486,7 +625,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
     private SpannableString make_clickable_text(String msg)
     {
-            Pattern pattern = Pattern.compile("\\[.+\\]");
+            Pattern pattern = Pattern.compile("\\[.+?\\]");
             Matcher matcher = pattern.matcher(msg);
             SpannableString ss_ = new SpannableString(msg);
             while (matcher.find())
@@ -515,20 +654,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                             return;
 
                         SendJSON sender = new SendJSON(1000000, 100000);
-                        JSONObject postData = new JSONObject();
-                        JSONObject params = new JSONObject();
                         String result = null;
-                        try {
-                            params.put("uuid", s);
-                            postData.put("id", "1234");
-                            postData.put("jsonrpc", "2.0");
-                            postData.put("method", "creat_user");
-                            postData.put("params", params);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            return;
-                        }
                         try{
                             String IP = new Kostyl().IP;
                             result = sender.execute(IP + "/file", null, "GET", all_files_uuids.get(index), token).get();
@@ -568,7 +694,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 };
                 clickableSpan.add(clickableSpan1);
                 ss_.setSpan(clickableSpan1, first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                ss_.setSpan( new ForegroundColorSpan(Color.BLUE), first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                //ss_.setSpan( new ForegroundColorSpan(Color.BLUE), first, second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
             }
             return ss_;
@@ -622,6 +748,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             }
             if (cur_msg!=null)
             {
+                s.img = get_all_bitmaps(cur_msg);
                 s.time = Long.parseLong(timestamp);
                 s.text = cur_msg;
                 s.creatorUUID = creator_uuid;
@@ -708,8 +835,20 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
             case R.id.upload:
                 performFileSearch();
                 break;
+            case R.id.ava:
+                upload_ava();
+                break;
         }
+
         return true;
+    }
+
+    private void upload_ava()
+    {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, UPLOAD_AVA);
     }
 
     @Override
@@ -794,7 +933,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if ((requestCode == READ_REQUEST_CODE || requestCode == UPLOAD_AVA) && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
@@ -815,7 +954,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                     return ;
                 }
                 SendJSON sender = new SendJSON(100000, 100000);
-                String result;
+                String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
                 try {
@@ -833,6 +972,40 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 try{
                     String IP = new Kostyl().IP;
                     result = sender.execute(IP + "/file", postData.toString(), "POST", null, token).get();
+
+                    if ( requestCode == UPLOAD_AVA)
+                    {
+                        String [] kostyl = result.split("\n");
+                        JSONObject recievedData, params_json;
+                        String  ava_uuid = null;
+                        String[] array = null;
+                        try {
+                            recievedData = new JSONObject(kostyl[0]);
+                            params_json = recievedData.getJSONObject("params");
+                            ava_uuid = params_json.getString("uuid");
+
+                        }catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                            return;
+                        }
+
+                        postData = new JSONObject();
+                        params = new JSONObject();
+                        try {
+                            params.put("avatarUUID", ava_uuid);
+                            postData.put("id", "1234");
+                            postData.put("jsonrpc", "2.0");
+                            postData.put("method", "creat_user");
+                            postData.put("params", params);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        sender = new SendJSON(100000, 100000);
+                        result = sender.execute(IP + "/user", postData.toString(), "PUT", null, token).get();
+                    }
                 }catch (InterruptedException e)
                 {
                     e.printStackTrace();
@@ -840,6 +1013,26 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 catch(ExecutionException e)
                 {
                     e.printStackTrace();
+                }
+                if (result.length() < 6)
+                {
+                    return;
+                }
+                if (requestCode == UPLOAD_AVA)
+                {
+                    byte[] bytes = Base64.decode(file[0], Base64.DEFAULT);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    setSupportActionBar(toolbar);
+                    NavigationView navigationView = findViewById(R.id.navigator_view);
+
+                    View headerView = navigationView.getHeaderView(0);
+                    navigationView.setNavigationItemSelectedListener(this);
+                    ImageView avatar = headerView.findViewById(R.id.face);
+
+                    avatar.setImageBitmap(bmp);
+
                 }
                 //TODO upload file
                 //Log.i(TAG, "Uri: " + uri.toString());

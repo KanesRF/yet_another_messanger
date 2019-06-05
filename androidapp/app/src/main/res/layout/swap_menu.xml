@@ -8,7 +8,10 @@
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
     android:id="@+id/nav_menu">
-
+<ImageView
+    android:layout_width="50dp"
+    android:id="@+id/face"
+    android:layout_height="50dp" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

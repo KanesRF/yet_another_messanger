@@ -88,7 +88,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
     static final int ADD_CHAT = 1;
     private ArrayAdapter<String> arrayAdapter;
     private List<String> dataList = new ArrayList<String>();
-    private static final int READ_REQUEST_CODE = 42;
+    private static final int READ_REQUEST_CODE = 42, UPLOAD_AVA = 24;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +116,14 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 R.string.navigation_open, R.string.navigation_close);
         drawLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+        FaceGetter fg = new FaceGetter(uuid, token);
+        Bitmap ava = fg.get_avu();
+        ImageView avatar = headerView.findViewById(R.id.face);
+        if (ava != null) {
+            avatar.setImageBitmap(ava);
+        }
+
 
         SendJSON sender = new SendJSON(100000, 100000);
         String result = null;
@@ -425,9 +433,20 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
             case R.id.upload:
                 performFileSearch();
                 break;
+            case R.id.ava:
+                upload_ava();
+                break;
         }
 
         return true;
+    }
+
+    private void upload_ava()
+    {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, UPLOAD_AVA);
     }
 
     @Override
@@ -515,7 +534,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if ((requestCode == READ_REQUEST_CODE || requestCode == UPLOAD_AVA) && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
@@ -536,7 +555,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                     return ;
                 }
                 SendJSON sender = new SendJSON(100000, 100000);
-                String result;
+                String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
                 try {
@@ -554,6 +573,40 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 try{
                     String IP = new Kostyl().IP;
                     result = sender.execute(IP + "/file", postData.toString(), "POST", null, token).get();
+
+                    if ( requestCode == UPLOAD_AVA)
+                    {
+                        String [] kostyl = result.split("\n");
+                        JSONObject recievedData, params_json;
+                        String  ava_uuid = null;
+                        String[] array = null;
+                        try {
+                            recievedData = new JSONObject(kostyl[0]);
+                            params_json = recievedData.getJSONObject("params");
+                            ava_uuid = params_json.getString("uuid");
+
+                        }catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                            return;
+                        }
+
+                        postData = new JSONObject();
+                        params = new JSONObject();
+                        try {
+                            params.put("avatarUUID", ava_uuid);
+                            postData.put("id", "1234");
+                            postData.put("jsonrpc", "2.0");
+                            postData.put("method", "creat_user");
+                            postData.put("params", params);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        sender = new SendJSON(100000, 100000);
+                        result = sender.execute(IP + "/user", postData.toString(), "PUT", null, token).get();
+                    }
                 }catch (InterruptedException e)
                 {
                     e.printStackTrace();
@@ -561,6 +614,26 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 catch(ExecutionException e)
                 {
                     e.printStackTrace();
+                }
+                if (result.length() < 6)
+                {
+                    return;
+                }
+                if (requestCode == UPLOAD_AVA)
+                {
+                    byte[] bytes = Base64.decode(file[0], Base64.DEFAULT);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    setSupportActionBar(toolbar);
+                    NavigationView navigationView = findViewById(R.id.navigator_view);
+
+                    View headerView = navigationView.getHeaderView(0);
+                    navigationView.setNavigationItemSelectedListener(this);
+                    ImageView avatar = headerView.findViewById(R.id.face);
+
+                    avatar.setImageBitmap(bmp);
+
                 }
                 //TODO upload file
                 //Log.i(TAG, "Uri: " + uri.toString());

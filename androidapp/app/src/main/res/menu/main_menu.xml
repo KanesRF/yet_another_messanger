@@ -14,6 +14,12 @@
         <item android:id="@+id/upload"
             android:icon="@drawable/ic_file_upload_black_24dp"
             android:title="Upload file" />
+        <item android:id="@+id/ava"
+            android:icon="@drawable/ic_camera_enhance_black_24dp"
+            android:title="Upload avatar" />
+        <item android:id="@+id/all_files"
+            android:icon="@drawable/ic_description_black_24dp"
+            android:title="All files" />
         <item android:id="@+id/logout"
             android:icon="@drawable/ic_remove_circle_outline_black_24dp"
             android:title="Logout" />
