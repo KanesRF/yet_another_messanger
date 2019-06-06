@@ -1,5 +1,6 @@
 package com.example.webapp;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -11,10 +12,12 @@ import java.util.concurrent.ExecutionException;
 
 public class FaceGetter {
     private String uuid, token;
-    public FaceGetter(String uuid, String tocken)
+    private Context context;
+    public FaceGetter(String uuid, String tocken, Context c)
     {
         this.uuid = uuid;
         this.token = tocken;
+        this.context = c;
     }
 
     public void setUuid(String uuid)
@@ -24,7 +27,7 @@ public class FaceGetter {
 
     public Bitmap get_avu()
     {
-        SendJSON sender = new SendJSON(1000000, 100000);
+        SendJSON sender = new SendJSON(1000000, 100000, context);
         String result = null;
         try{
             String IP = new Kostyl().IP;
@@ -57,7 +60,7 @@ public class FaceGetter {
             return null;
         }
 
-        sender = new SendJSON(1000000, 100000);
+        sender = new SendJSON(1000000, 100000, context);
         result = null;
         try{
             String IP = new Kostyl().IP;

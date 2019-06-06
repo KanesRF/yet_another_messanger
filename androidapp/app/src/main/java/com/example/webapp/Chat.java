@@ -153,7 +153,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         {
             return null;
         }
-        SendJSON sender = new SendJSON(1000000, 100000);
+        SendJSON sender = new SendJSON(1000000, 100000, Chat.this);
         String result = null;
         try{
             String IP = new Kostyl().IP;
@@ -343,7 +343,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         token = extras.getString("TOKEN");
         chat_uuid = extras.getString("CHAT");
         nickname = extras.getString("LOGIN");
-        SendJSON sender = new SendJSON(1000000, 100000);
+        SendJSON sender = new SendJSON(1000000, 100000, this);
         String result = null;
 
 
@@ -352,7 +352,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         TextView nickname_text = headerView.findViewById(R.id.nickname_in_menu);
         nickname_text.setText(nickname);
 
-        FaceGetter fg = new FaceGetter(uuid, token);
+        FaceGetter fg = new FaceGetter(uuid, token, this);
         Bitmap ava = fg.get_avu();
         ImageView avatar = headerView.findViewById(R.id.face);
         if (ava != null) {
@@ -431,7 +431,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
 
         try{
             String IP = new Kostyl().IP;
-            sender = new SendJSON(1000000, 100000);
+            sender = new SendJSON(1000000, 100000, this);
             result = sender.execute(IP + "/chat", null, "GET", chat_uuid, token).get();
         }catch (InterruptedException e)
         {
@@ -493,7 +493,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                     all_avatars.add(cur);
                     continue;
                 }
-                FaceGetter fg2 = new FaceGetter(uuid,token);
+                FaceGetter fg2 = new FaceGetter(uuid,token, this);
                 cur.avatar = fg2.get_avu();
                 all_avatars.add(cur);
             }
@@ -526,7 +526,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         send_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SendJSON sender = new SendJSON(1000000, 100000);
+                SendJSON sender = new SendJSON(1000000, 100000, Chat.this);
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
                 String result = null;
@@ -653,7 +653,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                         if (index == -1)
                             return;
 
-                        SendJSON sender = new SendJSON(1000000, 100000);
+                        SendJSON sender = new SendJSON(1000000, 100000, Chat.this);
                         String result = null;
                         try{
                             String IP = new Kostyl().IP;
@@ -705,7 +705,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
         //TODO for each uuid get text msg
         for(msg s : all_msgs)
         {
-            SendJSON sender = new SendJSON(1000000, 100000);
+            SendJSON sender = new SendJSON(1000000, 100000, Chat.this);
             JSONObject postData = new JSONObject();
             JSONObject params = new JSONObject();
             String result = null;
@@ -809,7 +809,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 finish();
                 break;
             case R.id.logout:
-                SendJSON sender = new SendJSON(1000000, 100000);
+                SendJSON sender = new SendJSON(1000000, 100000, Chat.this);
                 String result;
                 try{
                     String IP = new Kostyl().IP;
@@ -960,7 +960,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                 {
                     return ;
                 }
-                SendJSON sender = new SendJSON(100000, 100000);
+                SendJSON sender = new SendJSON(100000, 100000, Chat.this);
                 String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
@@ -1010,7 +1010,7 @@ public class Chat extends AppCompatActivity implements NavigationView.OnNavigati
                             e.printStackTrace();
                             return;
                         }
-                        sender = new SendJSON(100000, 100000);
+                        sender = new SendJSON(100000, 100000, Chat.this);
                         result = sender.execute(IP + "/user", postData.toString(), "PUT", null, token).get();
                     }
                 }catch (InterruptedException e)

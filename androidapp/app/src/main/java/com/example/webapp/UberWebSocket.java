@@ -30,7 +30,7 @@ public class UberWebSocket extends Service{
 
     final String LOG_TAG = "myLogs";
     private String token = "";
-
+    private String finger = "";
 
     public void onCreate() {
         super.onCreate();
@@ -51,6 +51,7 @@ public class UberWebSocket extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOG_TAG, "onStartCommand");
         this.token = intent.getStringExtra("TOKEN");
+        this.finger = intent.getStringExtra("FINGER");
         //connectWebSocket();
        // sendMessageToActivity("AAA",this);
         connectWebSocket();
@@ -78,8 +79,9 @@ public class UberWebSocket extends Service{
         }
 
         Map<String,String> httpHeaders = new HashMap<String,String>();
-        httpHeaders.put("token", token);
-
+        httpHeaders.put("Cookie", token);
+        httpHeaders.put("fingerprint", finger);
+        //httpHeaders.put("Content-Type", "application/json");
 
         mWebSocketClient = new WebSocketClient(uri, httpHeaders) {
             @Override

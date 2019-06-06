@@ -3,6 +3,7 @@ package com.example.webapp;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.webkit.CookieManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,6 +19,9 @@ public class TockenMaster
 {
     public void writeToFile(String uuid, String token, String name)
     {
+        CookieManager cookieMgr = CookieManager.getInstance();
+        String IP = new Kostyl().IP;
+        cookieMgr.setCookie("http://" + IP,token);
         boolean res;
         final File path =
                 Environment.getExternalStoragePublicDirectory
@@ -77,6 +81,9 @@ public class TockenMaster
             token = reader.readLine();
             name = reader.readLine();
             reader.close();
+            CookieManager cookieMgr = CookieManager.getInstance();
+            String IP = new Kostyl().IP;
+            token = cookieMgr.getCookie("http://" + IP);
             return uuid + "\n" + token + "\n" + name;
         }
         catch (FileNotFoundException e) {

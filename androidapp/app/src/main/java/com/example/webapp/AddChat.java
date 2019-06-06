@@ -48,7 +48,7 @@ public class AddChat extends Activity {
         tocken = extras.getString("TOKEN");
         uuid = extras.getString("UUID");
 
-        SendJSON sender = new SendJSON(1000000, 1000000);
+        SendJSON sender = new SendJSON(1000000, 1000000, this);
         JSONObject postData = new JSONObject();
         JSONObject params = new JSONObject();
         String result = "";
@@ -126,7 +126,7 @@ public class AddChat extends Activity {
                 String result = "";
                 ArrayList<String> Chosen = new ArrayList<String>();
                 try{
-                    SendJSON sender = new SendJSON(100000, 100000);
+                    SendJSON sender = new SendJSON(100000, 100000, AddChat.this);
                     //result = sender.execute("http://192.168.43.15:9090/chats", null, "GET", uuid, token).get();
                     // test
                     JSONObject postData = new JSONObject();

@@ -70,7 +70,7 @@ public class AddFriend extends Activity {
                         e.printStackTrace();
                         return;
                     }
-                    SendJSON sender = new SendJSON(100000, 100000);
+                    SendJSON sender = new SendJSON(100000, 100000, AddFriend.this);
                     String IP = new Kostyl().IP + "/contact";
                     result = sender.execute(IP, postData.toString(), "POST", null, token).get();
                 } catch (InterruptedException e) {

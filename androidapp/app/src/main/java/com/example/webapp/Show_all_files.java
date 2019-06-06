@@ -49,7 +49,7 @@ public class Show_all_files extends Activity {
             token = b.getString("TOKEN");
         }
         String kostyl = null;
-        SendJSON sender = new SendJSON(1000000, 100000);
+        SendJSON sender = new SendJSON(1000000, 100000, this);
         try{
             String IP = new Kostyl().IP;
             kostyl = sender.execute(IP + "/files", null, "GET", null, token).get();
@@ -89,7 +89,7 @@ public class Show_all_files extends Activity {
             if (matcher.find()) {
 
 
-                sender = new SendJSON(1000000, 100000);
+                sender = new SendJSON(1000000, 100000, this);
                 String result = null;
                 try {
                     String IP = new Kostyl().IP;
@@ -138,7 +138,7 @@ public class Show_all_files extends Activity {
             @Override
             public void onItemClick(int position) {
                 String uuid = all_files.get(position).uuid;
-                SendJSON sender = new SendJSON(1000000, 100000);
+                SendJSON sender = new SendJSON(1000000, 100000, Show_all_files.this);
                 String result = null;
                 try{
                     String IP = new Kostyl().IP;

@@ -117,7 +117,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         drawLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        FaceGetter fg = new FaceGetter(uuid, token);
+        FaceGetter fg = new FaceGetter(uuid, token, this);
         Bitmap ava = fg.get_avu();
         ImageView avatar = headerView.findViewById(R.id.face);
         if (ava != null) {
@@ -125,7 +125,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
         }
 
 
-        SendJSON sender = new SendJSON(100000, 100000);
+        SendJSON sender = new SendJSON(100000, 100000, this);
         String result = null;
         JSONObject postData = new JSONObject();
         JSONObject params = new JSONObject();
@@ -343,7 +343,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                         {
                             case R.id.delete:
                                 String [] chosen = all_chats.get(index).split("\n");
-                                SupaDeleter del = new SupaDeleter(token);
+                                SupaDeleter del = new SupaDeleter(token, MainMenu.this);
                                 if(del.delete_by_uuid(chosen[1], "chat/participant"))
                                 {
                                     all_chats.remove(index);
@@ -410,7 +410,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 finish();
                 break;
             case R.id.logout:
-                SendJSON sender = new SendJSON(100000, 100000);
+                SendJSON sender = new SendJSON(100000, 100000, this);
                 String result;
                 try{
                     String IP = new Kostyl().IP;
@@ -561,7 +561,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                 {
                     return ;
                 }
-                SendJSON sender = new SendJSON(100000, 100000);
+                SendJSON sender = new SendJSON(100000, 100000, this);
                 String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
@@ -611,7 +611,7 @@ public class MainMenu extends AppCompatActivity implements NavigationView.OnNavi
                             e.printStackTrace();
                             return;
                         }
-                        sender = new SendJSON(100000, 100000);
+                        sender = new SendJSON(100000, 100000, this);
                         result = sender.execute(IP + "/user", postData.toString(), "PUT", null, token).get();
                     }
                 }catch (InterruptedException e)

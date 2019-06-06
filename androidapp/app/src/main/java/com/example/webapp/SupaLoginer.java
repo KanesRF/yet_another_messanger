@@ -1,10 +1,16 @@
 package com.example.webapp;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.os.Build;
+import android.util.DisplayMetrics;
+import android.view.Display;
+import android.view.WindowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class SupaLoginer
@@ -40,6 +46,7 @@ public class SupaLoginer
         String uuid = null, token = null, name = null;
         JSONObject postData = new JSONObject();
         JSONObject params = new JSONObject();
+
         String result = null;
         try {
             postData.put("id", "1234");
@@ -49,16 +56,17 @@ public class SupaLoginer
             params.put("email",this.login);
             params.put("password",this.password);
 
+
             postData.put("params", params);
 
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
-        SendJSON sender = new SendJSON(1000000, 1000000);
+        SendJSON sender = new SendJSON(1000000, 1000000, context);
         try{
             String IP = new Kostyl().IP;
-            result = sender.execute(IP + "/auth", postData.toString(), "POST").get();
+            result = sender.execute(IP + "/auth", postData.toString(), "POST", null, null).get();
         }catch (InterruptedException e)
         {
             e.printStackTrace();
@@ -82,6 +90,7 @@ public class SupaLoginer
                 token = kostyl[1];
                 name = params_json.getString("name");
 
+
             }catch (JSONException e)
             {
                 e.printStackTrace();
@@ -90,6 +99,7 @@ public class SupaLoginer
             TockenMaster tockenMaster = new TockenMaster();
             //String prov = tockenMaster.readFromFile(Register.this);
             tockenMaster.writeToFile(uuid, token, name);
+
         }
         return uuid + "\n" + token + "\n" + name;
     }

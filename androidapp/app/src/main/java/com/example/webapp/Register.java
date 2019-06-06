@@ -87,7 +87,7 @@ public class Register extends AppCompatActivity {
                         e.printStackTrace();
                         return;
                     }
-                    SendJSON sender = new SendJSON(1000000, 1000000);
+                    SendJSON sender = new SendJSON(1000000, 1000000, Register.this);
                     try{
                         String IP = new Kostyl().IP;
                         result = sender.execute(IP + "/user", postData.toString(), "POST").get();

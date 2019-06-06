@@ -211,7 +211,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         TextView nickname_text = headerView.findViewById(R.id.nickname_in_menu);
         nickname_text.setText(nickname);
 
-        FaceGetter fg = new FaceGetter(uuid, tocken);
+        FaceGetter fg = new FaceGetter(uuid, tocken, this);
         Bitmap ava = fg.get_avu();
         ImageView avatar = headerView.findViewById(R.id.face);
         if (ava != null) {
@@ -231,7 +231,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 cMessageReceiver, new IntentFilter("UBER"));
 
-        SendJSON sender = new SendJSON(1000000, 100000);
+        SendJSON sender = new SendJSON(1000000, 100000, this);
         JSONObject postData = new JSONObject();
         JSONObject params = new JSONObject();
         String result = "";
@@ -306,7 +306,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                         {
                             case R.id.delete:
                                 String [] chosen = all_friends.get(index).split("\n");
-                                SupaDeleter del = new SupaDeleter(tocken);
+                                SupaDeleter del = new SupaDeleter(tocken, Friendlist.this);
                                 if(del.delete_by_uuid(chosen[1], "contact"))
                                 {
                                     all_friends.remove(index);
@@ -352,7 +352,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 {
                     return ;
                 }
-                SendJSON sender = new SendJSON(100000, 100000);
+                SendJSON sender = new SendJSON(100000, 100000, this);
                 String result = "";
                 JSONObject postData = new JSONObject();
                 JSONObject params = new JSONObject();
@@ -402,7 +402,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                             e.printStackTrace();
                             return;
                         }
-                        sender = new SendJSON(100000, 100000);
+                        sender = new SendJSON(100000, 100000, this);
                         result = sender.execute(IP + "/user", postData.toString(), "PUT", null, tocken).get();
                     }
                 }catch (InterruptedException e)
@@ -469,7 +469,7 @@ public class Friendlist extends AppCompatActivity implements NavigationView.OnNa
                 finish();
                 break;
             case R.id.logout:
-                SendJSON sender = new SendJSON(1000000, 100000);
+                SendJSON sender = new SendJSON(1000000, 100000, this);
                 String result;
                 try {
                     String IP = new Kostyl().IP;
